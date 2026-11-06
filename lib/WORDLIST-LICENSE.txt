@@ -1,0 +1,11 @@
+AURA kelime havuzu (words.js) şu kaynaklardan uyarlanmıştır:
+
+- The CEFR-J Wordlist Version 1.5. Compiled by Yukio Tono, Tokyo University of Foreign Studies.
+  Retrieved via https://github.com/openlanguageprofiles/olp-en-cefrj
+  Ücretsiz araştırma ve ticari kullanım, uygun atıf koşuluyla. Telif: Tono Laboratory, TUFS.
+- Octanove Vocabulary Profile C1/C2 (ver 1.0), Octanove Labs.
+  Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0).
+
+Uyarlama: kelimeler tekilleştirildi, İngiliz yazımına çevrildi (ör. color → colour),
+CEFR seviyesi ve kullanım sıklığına göre sıralanıp her seviyede 1.000 kelimelik
+gruplara ayrıldı. Bu uyarlama da CC BY-SA 4.0 ile paylaşılır.
