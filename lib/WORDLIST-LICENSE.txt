@@ -6,6 +6,6 @@ AURA kelime havuzu (words.js) şu kaynaklardan uyarlanmıştır:
 - Octanove Vocabulary Profile C1/C2 (ver 1.0), Octanove Labs.
   Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0).
 
-Uyarlama: kelimeler tekilleştirildi, İngiliz yazımına çevrildi (ör. color → colour),
+Uyarlama: kelimeler tekilleştirildi, İngiliz yazımına ve kelime tercihine çevrildi (ör. color → colour, apartment → flat),
 CEFR seviyesi ve kullanım sıklığına göre sıralanıp her seviyede 1.000 kelimelik
 gruplara ayrıldı. Bu uyarlama da CC BY-SA 4.0 ile paylaşılır.
