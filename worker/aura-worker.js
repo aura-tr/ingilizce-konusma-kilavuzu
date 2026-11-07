@@ -42,11 +42,14 @@ export default {
     let body;
     try { body = await request.json(); } catch (e) { return json({ error: 'json' }, 400); }
     const student = body.student || {};
+    if (body.mode === 'summary') return json(await lessonSummary(env, student, body.messages || []));
     const history = Array.isArray(body.messages) ? body.messages.slice(-MAX_TURNS) : [];
     const messages = history
       .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.text === 'string' && m.text.trim())
       .map(m => ({ role: m.role, content: m.text.slice(0, MAX_CHARS) }));
     // Konuşma her zaman öğrenciyle başlamalı ve öğrenciyle bitmeli
+    if (body.start === true) messages.push({ role: 'user', content: '(A new lesson starts now. Greet the student by name. If you know what happened in the last lesson, connect to it in one short sentence — for example practise one recurring mistake or continue the last topic. Then ask one question.)' });
+    if (body.resume === true) messages.push({ role: 'user', content: '(The student is back after a short break in the same lesson. Welcome them back in a few words and continue exactly where you stopped.)' });
     if (messages.length && messages[0].role === 'assistant') messages.unshift({ role: 'user', content: '(The lesson starts. The teacher greets the student first.)' });
     if (!messages.length || messages[messages.length - 1].role !== 'user') return json({ error: 'empty' }, 400);
     // Arka arkaya aynı rol gelirse birleştir
@@ -103,8 +106,10 @@ export function parseReply(text) {
   if (k >= 0) {
     const reply = text.slice(0, k).trim(); let meta = {};
     try { const mm = text.slice(k + 3).match(/\{[\s\S]*\}/); if (mm) meta = JSON.parse(mm[0]); } catch (e) {}
-    const c = meta.correction && meta.correction.right ? { wrong: String(meta.correction.wrong || ''), right: String(meta.correction.right), note_tr: String(meta.correction.note_tr || '') } : null;
+    const c = meta.correction && meta.correction.right ? { wrong: String(meta.correction.wrong || ''), right: String(meta.correction.right), note_tr: String(meta.correction.note_tr || ''), type: String(meta.correction.type || '') } : null;
     return { reply: reply || 'Sorry, can you say that again?', correction: c, new_words: Array.isArray(meta.new_words) ? meta.new_words.slice(0, 5).map(String) : [],
+      grammar: Array.isArray(meta.grammar) ? meta.grammar.slice(0, 5) : [], used_words: Array.isArray(meta.used_words) ? meta.used_words.slice(0, 20).map(String) : [],
+      facts: Array.isArray(meta.facts) ? meta.facts.slice(0, 3).map(String) : [],
       level_estimate: /^(A1|A2|B1|B2|C1|C2)$/.test(meta.level_estimate || '') ? meta.level_estimate : null, done: meta.done === true };
   }
   const m = text.match(/\{[\s\S]*\}/);
@@ -156,7 +161,12 @@ export function systemPrompt(s, mode) {
   if (step.topic) lines.push(`Current lesson step: ${clean(step.topic)}. Can-do goal: "${clean(step.goal)}". Grammar focus: ${clean(step.grammar)}. Useful words: ${clean(step.words)}. Useful phrases: ${clean(step.phrases)}. Steer the talk to this topic and help ${name} use these words and phrases.`);
   if (Array.isArray(s.interests) && s.interests.length) lines.push(`Student interests: ${s.interests.slice(0, 6).map(clean).join(', ')}. Use them in examples when it fits.`);
   if (Array.isArray(s.known) && s.known.length) lines.push(`Words the student has learned recently (reuse some): ${s.known.slice(0, 40).map(clean).join(', ')}.`);
-  if (Array.isArray(s.facts) && s.facts.length) lines.push(`Things you already know about the student (never ask these again): ${s.facts.slice(0, 20).map(clean).join('; ')}.`);
+  if (Array.isArray(s.facts) && s.facts.length) lines.push(`Things you already know about the student (never ask these again; use them naturally): ${s.facts.slice(0, 25).map(clean).join('; ')}.`);
+  const mem = s.memory || {};
+  if (Array.isArray(mem.sessions) && mem.sessions.length) lines.push(`LAST LESSONS (most recent last): ${mem.sessions.slice(-3).map(x => clean(x.date) + ': ' + clean(x.summary)).join(' | ')}`);
+  if (Array.isArray(mem.errors) && mem.errors.length) lines.push(`RECURRING MISTAKES to practise gently (create chances to use the correct form; praise when it is right): ${mem.errors.slice(0, 5).map(e => '"' + clean(e.right) + '"' + (e.type ? ' (' + clean(e.type) + ')' : '') + ' ×' + (e.count || 1)).join('; ')}.`);
+  if (Array.isArray(mem.weak) && mem.weak.length) lines.push(`WEAK GRAMMAR: ${mem.weak.slice(0, 4).map(clean).join(', ')}.`);
+  if (Array.isArray(mem.review) && mem.review.length) lines.push(`WORDS TO REVIEW (bring 2–3 of them into the talk): ${mem.review.slice(0, 12).map(clean).join(', ')}.`);
   if (mode === 'level') {
     lines.push(`MODE: LEVEL CHECK. Ask one question per turn, starting very easy (A1) and getting gradually harder (A2, B1, B2) while the student answers well. After 8–10 student answers, set "done": true, give a kind summary in "reply", and set "level_estimate" to the CEFR level the student showed. Before that, keep "level_estimate" null.`);
   } else if (mode === 'task') {
@@ -167,8 +177,33 @@ export function systemPrompt(s, mode) {
   lines.push(`OUTPUT FORMAT (the app speaks your words aloud the moment they arrive, so start with them):
 Line 1+: what you say to the student, plain English only, 1–3 short sentences. No labels, no quotes around it, no emoji, no markdown.
 Then a line with exactly: ###
-Then one JSON object: {"correction": null or {"wrong": "<student's sentence>", "right": "<corrected sentence>", "note_tr": "<Turkish note>"}, "new_words": ["<up to 3 words>"], "level_estimate": null, "done": false}`);
+Then one JSON object about the student's LAST message:
+{"correction": null or {"wrong": "<student's sentence>", "right": "<corrected sentence>", "note_tr": "<Turkish note>", "type": "<short English error label, e.g. third person -s, past simple, article a/an, word order, word choice>"},
+ "grammar": [{"s": "<structure the student tried, e.g. present simple he/she>", "ok": true or false}],
+ "used_words": ["<English content words the student used correctly>"],
+ "facts": ["<new personal fact the student told you, short, e.g. has a sister called Elif>"],
+ "new_words": ["<up to 3 words>"], "level_estimate": null, "done": false}
+Use empty arrays when there is nothing to report.`);
   return lines.filter(Boolean).join('\n');
+}
+
+/** Ders sonu özeti: öğretmen defteri ve bir sonraki dersin hafızası için */
+async function lessonSummary(env, student, history) {
+  const talk = history.filter(m => m && typeof m.text === 'string').slice(-40).map(m => (m.role === 'user' ? 'Student: ' : 'Teacher: ') + m.text.slice(0, 400)).join('\n');
+  if (!talk.trim()) return { summary_en: '', summary_tr: '', facts: [], struggles: [] };
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': API_VERSION },
+    body: JSON.stringify({ model: env.MODEL || 'claude-haiku-5-5', max_tokens: 500, thinking: { type: 'disabled' }, output_config: { effort: 'low' },
+      system: `You write short lesson notes for an English teacher app. The student is ${clean(student.name) || 'the student'}, CEFR ${clean(student.level) || 'A1'}. Reply with ONLY one JSON object:
+{"summary_en": "<2-3 short sentences for the teacher AI's memory: topic, what went well, what was difficult>", "summary_tr": "<the same in Turkish for the family>", "facts": ["<personal facts the student shared>"], "struggles": ["<up to 3 language points to practise next time>"]}`,
+      messages: [{ role: 'user', content: talk }] })
+  });
+  if (!res.ok) return { error: 'upstream', status: res.status };
+  const data = await res.json();
+  const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+  try { const j = JSON.parse(text.match(/\{[\s\S]*\}/)[0]); return { summary_en: String(j.summary_en || ''), summary_tr: String(j.summary_tr || ''), facts: (j.facts || []).slice(0, 6).map(String), struggles: (j.struggles || []).slice(0, 3).map(String) }; }
+  catch (e) { return { summary_en: text.slice(0, 400), summary_tr: '', facts: [], struggles: [] }; }
 }
 
 function clean(v) { return String(v == null ? '' : v).replace(/[\r\n]+/g, ' ').slice(0, 200); }
