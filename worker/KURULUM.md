@@ -8,8 +8,12 @@ Bu köprü, uygulama ile Claude arasında durur. API anahtarı yalnızca Cloudfl
 4. Worker → Settings → **Variables and Secrets**:
    - `ANTHROPIC_API_KEY` (Secret) → Anthropic anahtarı
    - `FAMILY_CODE` (Secret) → aile kodu (kendiniz belirleyin)
-   - İsteğe bağlı: `MODEL` (varsayılan `claude-haiku-5-5`), `ALLOWED_ORIGIN` (varsayılan `https://aura-tr.github.io`)
+   - İsteğe bağlı: `MODEL` (varsayılan `claude-haiku-5-5`), `ALLOWED_ORIGIN` (varsayılan `https://aura-tr.github.io`), `THINKING` (varsayılan `disabled` = en hızlı; `adaptive` = daha düşünceli ama yavaş), `EFFORT` (varsayılan `low`)
 5. Worker adresini kopyalayın (`https://aura-worker.<hesap>.workers.dev`).
 6. Uygulamada öğretmen sayfası `…/#desteler` → **Yapay zekâ öğretmen** → adres + aile kodu → **Kaydet ve test et**.
 
 Test ettiğinizde "Bağlantı çalışıyor" ve öğretmenin ilk cümlesi görünür.
+
+## Hız (Aşama 3.2)
+
+Cevap parça parça akar; Alisha ilk cümle gelir gelmez konuşur. Öğretmen sayfasında son 10 cevabın ortalama "ilk kelimeler" süresi görünür. Hedef: 3 saniyenin altı.

@@ -6,6 +6,8 @@
  *   FAMILY_CODE        Aile kodu (uygulamada öğretmen ayarlarına aynı kod girilir)
  * İsteğe bağlı değişkenler:
  *   MODEL              Varsayılan: claude-haiku-5-5 (hızlı ve ekonomik)
+ *   THINKING           Varsayılan: disabled (en hızlı cevap). "adaptive" yazılırsa model önce düşünür (daha yavaş)
+ *   EFFORT             Varsayılan: low (low | medium | high)
  *   ALLOWED_ORIGIN     Varsayılan: https://aura-tr.github.io
  *
  * Bu dosyada hiçbir gizli bilgi yoktur; depo herkese açık olabilir.
@@ -54,14 +56,40 @@ export default {
       if (last && last.role === m.role) last.content += '\n' + m.content; else merged.push({ ...m });
     }
 
+    // Hız (Aşama 3.2): düşünme kapalı, düşük efor, kısa cevap; istenirse parça parça akış (streaming)
+    const thinking = (env.THINKING || 'disabled') === 'adaptive' ? { type: 'adaptive', display: 'omitted' } : { type: 'disabled' };
+    const effort = ['low', 'medium', 'high'].includes(env.EFFORT) ? env.EFFORT : 'low';
+    const stream = body.stream === true;
     const res = await fetch(API_URL, {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': API_VERSION },
-      body: JSON.stringify({ model: env.MODEL || 'claude-haiku-5-5', max_tokens: 700, system: systemPrompt(student, body.mode), messages: merged })
+      body: JSON.stringify({ model: env.MODEL || 'claude-haiku-5-5', max_tokens: 600, thinking, output_config: { effort }, stream,
+        system: systemPrompt(student, body.mode), messages: merged })
     });
     if (!res.ok) {
       const t = await res.text();
       return json({ error: 'upstream', status: res.status, detail: t.slice(0, 300) }, 502);
+    }
+    if (stream) {
+      // Claude'un SSE akışını düz metne çevirip uygulamaya anında iletir
+      const { readable, writable } = new TransformStream();
+      const writer = writable.getWriter(), enc = new TextEncoder(), dec = new TextDecoder();
+      (async () => {
+        const reader = res.body.getReader(); let buf = '';
+        try {
+          for (;;) {
+            const { value, done } = await reader.read(); if (done) break;
+            buf += dec.decode(value, { stream: true });
+            let i;
+            while ((i = buf.indexOf('\n')) >= 0) {
+              const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
+              if (!line.startsWith('data:')) continue;
+              try { const ev = JSON.parse(line.slice(5)); if (ev.type === 'content_block_delta' && ev.delta && ev.delta.type === 'text_delta') await writer.write(enc.encode(ev.delta.text)); } catch (e) {}
+            }
+          }
+        } finally { await writer.close(); }
+      })();
+      return new Response(readable, { headers: { ...cors, 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' } });
     }
     const data = await res.json();
     const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('').trim();
@@ -69,8 +97,16 @@ export default {
   }
 };
 
-/** Claude'un cevabındaki JSON'u çıkarır; JSON yoksa düz metni cevap sayar. */
+/** Cevap biçimi: önce konuşulacak metin, sonra "###" satırı ve bilgi JSON'u. Eski biçim (tek JSON) da okunur. */
 export function parseReply(text) {
+  const k = text.indexOf('###');
+  if (k >= 0) {
+    const reply = text.slice(0, k).trim(); let meta = {};
+    try { const mm = text.slice(k + 3).match(/\{[\s\S]*\}/); if (mm) meta = JSON.parse(mm[0]); } catch (e) {}
+    const c = meta.correction && meta.correction.right ? { wrong: String(meta.correction.wrong || ''), right: String(meta.correction.right), note_tr: String(meta.correction.note_tr || '') } : null;
+    return { reply: reply || 'Sorry, can you say that again?', correction: c, new_words: Array.isArray(meta.new_words) ? meta.new_words.slice(0, 5).map(String) : [],
+      level_estimate: /^(A1|A2|B1|B2|C1|C2)$/.test(meta.level_estimate || '') ? meta.level_estimate : null, done: meta.done === true };
+  }
   const m = text.match(/\{[\s\S]*\}/);
   if (m) {
     try {
@@ -128,8 +164,10 @@ export function systemPrompt(s, mode) {
   } else {
     lines.push(`MODE: FREE TALK about everyday life or the student's interests.`);
   }
-  lines.push(`OUTPUT: reply with ONLY one JSON object, no other text:
-{"reply": "<what you say, English>", "correction": null or {"wrong": "<student's sentence>", "right": "<corrected sentence>", "note_tr": "<Turkish note>"}, "new_words": ["<up to 3 new English words you used that may be new>"], "level_estimate": null, "done": false}`);
+  lines.push(`OUTPUT FORMAT (the app speaks your words aloud the moment they arrive, so start with them):
+Line 1+: what you say to the student, plain English only, 1–3 short sentences. No labels, no quotes around it, no emoji, no markdown.
+Then a line with exactly: ###
+Then one JSON object: {"correction": null or {"wrong": "<student's sentence>", "right": "<corrected sentence>", "note_tr": "<Turkish note>"}, "new_words": ["<up to 3 words>"], "level_estimate": null, "done": false}`);
   return lines.filter(Boolean).join('\n');
 }
 
