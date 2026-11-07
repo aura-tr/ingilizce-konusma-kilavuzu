@@ -109,7 +109,7 @@ export function parseReply(text) {
     const c = meta.correction && meta.correction.right ? { wrong: String(meta.correction.wrong || ''), right: String(meta.correction.right), note_tr: String(meta.correction.note_tr || ''), type: String(meta.correction.type || '') } : null;
     return { reply: reply || 'Sorry, can you say that again?', correction: c, new_words: Array.isArray(meta.new_words) ? meta.new_words.slice(0, 5).map(String) : [],
       grammar: Array.isArray(meta.grammar) ? meta.grammar.slice(0, 5) : [], used_words: Array.isArray(meta.used_words) ? meta.used_words.slice(0, 20).map(String) : [],
-      facts: Array.isArray(meta.facts) ? meta.facts.slice(0, 3).map(String) : [],
+      facts: Array.isArray(meta.facts) ? meta.facts.slice(0, 3).map(String) : [], can_do_shown: meta.can_do_shown === true,
       level_estimate: /^(A1|A2|B1|B2|C1|C2)$/.test(meta.level_estimate || '') ? meta.level_estimate : null, done: meta.done === true };
   }
   const m = text.match(/\{[\s\S]*\}/);
@@ -135,7 +135,7 @@ export function parseReply(text) {
 export function systemPrompt(s, mode) {
   const name = clean(s.name) || 'the student';
   const level = /^(A1|A2|B1|B2|C1|C2)$/.test(s.level || '') ? s.level : 'A1';
-  const teacher = s.teacher === 'daniel' ? 'Daniel' : 'Alisha';
+  const teacher = 'Alisha';
   const step = s.step || {};
   const LEVEL_STYLE = {
     A1: 'Use very short sentences (5–9 words), present simple, the most common everyday words, and one simple question per turn. Speak slowly and clearly.',
@@ -164,9 +164,10 @@ export function systemPrompt(s, mode) {
   if (Array.isArray(s.facts) && s.facts.length) lines.push(`Things you already know about the student (never ask these again; use them naturally): ${s.facts.slice(0, 25).map(clean).join('; ')}.`);
   const mem = s.memory || {};
   if (Array.isArray(mem.sessions) && mem.sessions.length) lines.push(`LAST LESSONS (most recent last): ${mem.sessions.slice(-3).map(x => clean(x.date) + ': ' + clean(x.summary)).join(' | ')}`);
-  if (Array.isArray(mem.errors) && mem.errors.length) lines.push(`RECURRING MISTAKES to practise gently (create chances to use the correct form; praise when it is right): ${mem.errors.slice(0, 5).map(e => '"' + clean(e.right) + '"' + (e.type ? ' (' + clean(e.type) + ')' : '') + ' ×' + (e.count || 1)).join('; ')}.`);
+  if (Array.isArray(mem.errors) && mem.errors.length) lines.push(`RECURRING MISTAKES to practise gently (create chances to use the correct form; praise when it is right): ${mem.errors.slice(0, 5).map(e => (e.priority ? 'PRIORITY ' : '') + '"' + clean(e.right) + '"' + (e.type ? ' (' + clean(e.type) + ')' : '') + ' ×' + (e.count || 1)).join('; ')}. Give PRIORITY mistakes a chance in this lesson first.`);
   if (Array.isArray(mem.weak) && mem.weak.length) lines.push(`WEAK GRAMMAR: ${mem.weak.slice(0, 4).map(clean).join(', ')}.`);
   if (Array.isArray(mem.review) && mem.review.length) lines.push(`WORDS TO REVIEW (bring 2–3 of them into the talk): ${mem.review.slice(0, 12).map(clean).join(', ')}.`);
+  if (Array.isArray(s.grammar_labels) && s.grammar_labels.length) lines.push(`GRAMMAR LABELS: in "grammar", "s" must be exactly one of these labels when it fits: ${s.grammar_labels.slice(0, 20).map(clean).join(' | ')}. Report only structures the student really used.`);
   if (mode === 'level') {
     lines.push(`MODE: LEVEL CHECK. Ask one question per turn, starting very easy (A1) and getting gradually harder (A2, B1, B2) while the student answers well. After 8–10 student answers, set "done": true, give a kind summary in "reply", and set "level_estimate" to the CEFR level the student showed. Before that, keep "level_estimate" null.`);
   } else if (mode === 'task') {
@@ -182,8 +183,9 @@ Then one JSON object about the student's LAST message:
  "grammar": [{"s": "<structure the student tried, e.g. present simple he/she>", "ok": true or false}],
  "used_words": ["<English content words the student used correctly>"],
  "facts": ["<new personal fact the student told you, short, e.g. has a sister called Elif>"],
+ "can_do_shown": false,
  "new_words": ["<up to 3 words>"], "level_estimate": null, "done": false}
-Use empty arrays when there is nothing to report.`);
+Use empty arrays when there is nothing to report. Set "can_do_shown" to true only when this message clearly shows the can-do goal of the current lesson step.`);
   return lines.filter(Boolean).join('\n');
 }
 
