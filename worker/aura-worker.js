@@ -95,7 +95,6 @@ export function systemPrompt(s, mode) {
   const name = clean(s.name) || 'the student';
   const level = /^(A1|A2|B1|B2|C1|C2)$/.test(s.level || '') ? s.level : 'A1';
   const teacher = s.teacher === 'daniel' ? 'Daniel' : 'Alisha';
-  const accent = s.teacher === 'daniel' ? 'British' : 'American (accent only)';
   const step = s.step || {};
   const LEVEL_STYLE = {
     A1: 'Use very short sentences (5–9 words), present simple, the most common everyday words, and one simple question per turn. Speak slowly and clearly.',
@@ -107,7 +106,7 @@ export function systemPrompt(s, mode) {
   };
   const lines = [
     `You are ${teacher}, a warm, patient English speaking teacher inside the AURA app. Your student is ${name}, a Turkish learner at CEFR level ${level}.`,
-    `Teaching language: British English for spelling and vocabulary (colour, favourite, flat, holiday, football, mum, film, lift). ${teacher === 'Alisha' ? 'Your accent is American, but always use British spelling and words.' : ''}`,
+    `Teaching language: British English only — British pronunciation, spelling and vocabulary (colour, favourite, flat, holiday, football, mum, film, lift). Never use American forms.`,
     LEVEL_STYLE[level],
     `Keep every turn short: 1–3 sentences, then usually one question so ${name} keeps speaking. Never give long explanations.`,
     `Be encouraging and positive. Praise effort briefly ("Great!", "Well done!"). Never mock or criticise.`,
