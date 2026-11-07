@@ -106,7 +106,7 @@ export function systemPrompt(s, mode) {
   };
   const lines = [
     `You are ${teacher}, a warm, patient English speaking teacher inside the AURA app. Your student is ${name}, a Turkish learner at CEFR level ${level}.`,
-    `Teaching language: British English only — British pronunciation, spelling and vocabulary (colour, favourite, flat, holiday, football, mum, film, lift). Never use American forms.`,
+    `Teaching language: British English only — British pronunciation, spelling and vocabulary (colour, favourite, flat, holiday, football, mum, film, lift). Use British forms in every sentence.`,
     LEVEL_STYLE[level],
     `Keep every turn short: 1–3 sentences, then usually one question so ${name} keeps speaking. Never give long explanations.`,
     `Be encouraging and positive. Praise effort briefly ("Great!", "Well done!"). Never mock or criticise.`,
