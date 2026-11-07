@@ -5537,7 +5537,7 @@ fret	ˈfrɛt
 freud	ˈfrɔɪd
 friar	ˈfraɪə
 friction	ˈfrɪkʃən
-friday	ˈfraɪdi
+friday	ˈfraɪdeɪ
 fridays	ˈfraɪdiz
 fridge	ˈfrɪdʒ
 fried	ˈfraɪd
@@ -8670,7 +8670,7 @@ monaco	ˈmɒnəkəʊ
 monarch	ˈmɒnək
 monarchs	ˈmɒnəks
 monarchy	ˈmɒnəki
-monday	ˈmʌndi
+monday	ˈmʌndeɪ
 mondays	ˈmʌndiz
 monetary	ˈmʌnɪtəri
 money	ˈmʌni
@@ -11709,7 +11709,7 @@ satisfaction	sætɪsˈfækʃən
 satisfactory	sætɪsˈfæktri
 satisfied	ˈsætɪsfaɪd
 satisfy	ˈsætɪsfaɪ
-saturday	ˈsætədi
+saturday	ˈsætədeɪ
 saturdays	ˈsætədiz
 saturn	ˈsætən
 sauce	ˈsɔːs
@@ -13161,7 +13161,7 @@ summon	ˈsʌmən
 sums	ˈsʌmz
 sun	ˈsʌn
 sunburn	ˈsʌnbɜːn
-sunday	ˈsʌndi
+sunday	ˈsʌndeɪ
 sundays	ˈsʌndiːz
 sunderland	ˈsʌndələnd
 sung	ˈsʌŋ
@@ -13718,7 +13718,7 @@ thumbnails	ˈθʌmneɪlz
 thumbs	ˈθʌmz
 thump	ˈθʌmp
 thunder	ˈθʌndə
-thursday	ˈθɜːzdi
+thursday	ˈθɜːzdeɪ
 thursdays	ˈθɜːzdiz
 thus	ˈðʌs
 thy	ˈðaɪ
@@ -14089,7 +14089,7 @@ tubes	ˈtjuːbz
 tuck	ˈtʌk
 tucson	ˈtuːsɒn
 tudor	ˈtjuːdə
-tuesday	ˈtjuːzdi
+tuesday	ˈtjuːzdeɪ
 tuesdays	ˈtjuːzdiz
 tuft	ˈtʌft
 tug	ˈtʌg
@@ -14778,7 +14778,7 @@ wedded	ˈwɛdɪd
 wedding	ˈwɛdɪŋ
 weddings	ˈwɛdɪŋz
 wedge	ˈwɛdʒ
-wednesday	ˈwɛnzdi
+wednesday	ˈwɛnzdeɪ
 wednesdays	ˈwɛnzdiz
 wee	ˈwiː
 weed	ˈwiːd
@@ -15130,7 +15130,7 @@ yemen	ˈjɛmən
 yen	ˈjɛn
 yep	ˈjɛp
 yes	ˈjɛs
-yesterday	ˈjɛstədi
+yesterday	ˈjɛstədeɪ
 yet	ˈjɛt
 yew	ˈjuː
 yield	ˈjiːld

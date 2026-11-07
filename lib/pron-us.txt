@@ -41785,7 +41785,7 @@ friction	ˈfrɪkʃən
 frictionless	ˈfrɪkʃənləs
 frictions	ˈfrɪkʃənz
 frida	ˈfridə
-friday	ˈfraɪdi
+friday	ˈfraɪdeɪ
 friday's	ˈfraɪdiz
 fridays	ˈfraɪdiz
 friddle	ˈfrɪdəl
@@ -75112,7 +75112,7 @@ mondale	ˈmɑndeɪl
 mondale's	ˈmɑndeɪlz
 mondallo	mɑnˈdæloʊ
 mondavi	mɑnˈdɑvi
-monday	ˈmʌndi
+monday	ˈmʌndeɪ
 monday's	ˈmʌndiz
 mondays	ˈmʌndiz
 monde	ˈmɑnd
@@ -98824,7 +98824,7 @@ saturate	ˈsætʃɚeɪt
 saturated	ˈsætʃɚeɪtɪd
 saturating	ˈsætʃɚeɪtɪŋ
 saturation	sætʃɚˈeɪʃən
-saturday	ˈsætɚdi
+saturday	ˈsætɚdeɪ
 saturday's	ˈsætɚdiz
 saturdays	ˈsætɚdiz
 saturn	ˈsætɚn
@@ -115916,7 +115916,7 @@ tudor's	ˈtjudɚz
 tue	ˈtu
 tuel	ˈtul
 tuell	ˈtul
-tuesday	ˈtuzdi
+tuesday	ˈtuzdeɪ
 tuesday's	ˈtuzdiz
 tuesdays	ˈtuzdeɪz
 tufa	ˈtufə
@@ -121480,7 +121480,7 @@ wedgwood	ˈwɛdʒwʊd
 wedig	ˈwɛdɪɡ
 wedin	ˈwɛdɪn
 wedlock	ˈwɛdlɑk
-wednesday	ˈwɛnzdi
+wednesday	ˈwɛnzdeɪ
 wednesday's	ˈwɛnzdiz
 wednesdays	ˈwɛnzdeɪz
 wedowee	wɛˈdaʊwi
